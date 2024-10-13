@@ -59,7 +59,7 @@ type (
 func init() {
 	fmt.Println("init function running")
 
-	rnd = renderer.New()
+	rnd = renderer.New(renderer.Options{ParseGlobPattern: "html/*.html"})
 	var err error
 
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
@@ -71,8 +71,9 @@ func init() {
 	db = client.Database(dbName)
 }
 func homeHandler(rw http.ResponseWriter, r *http.Request) {
-	filePath := "./README.md"
-	err := rnd.FileView(rw, http.StatusOK, filePath, "read.md")
+	// filePath := "./README.md"
+	// err := rnd.FileView(rw, http.StatusOK, filePath, "read.md")
+	err := rnd.HTML(rw, http.StatusOK, "indexPage", nil)
 	checkError(err)
 }
 func checkError(err error) {
@@ -221,6 +222,8 @@ func todoHandlers() http.Handler {
 func main() {
 	router := chi.NewRouter()
 	router.Use(middleware.Logger)
+	fs := http.FileServer(http.Dir("./assets"))
+	router.Handle("/assets/*", http.StripPrefix("/assets/", fs))
 	router.Get("/", homeHandler)
 	router.Mount("/todo", todoHandlers())
 
