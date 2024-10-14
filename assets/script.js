@@ -2,6 +2,8 @@
 const localHostAddress = "http://localhost:9000/todo";
 const newTodoInput = document.querySelector("#new-todo input");
 const submitButton = document.querySelector("#submit");
+let isEditingTask = false;
+let editButtonTodoID = "";
 async function getTodos() {
     try {
         const response = await fetch(localHostAddress);
@@ -42,11 +44,36 @@ async function deleteTodo(TodoID) {
         console.error("error:", error);
     }
 }
+async function updateTodo(id, data) {
+    try {
+        const response = await fetch(`${localHostAddress}/${id}`, {
+            method: "PUT",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify(data),
+        });
+        const result = await response.json();
+        console.log("Success:", result);
+    }
+    catch (error) {
+        console.error("Error:", error);
+    }
+}
 async function addTask() {
     const data = { title: newTodoInput.value };
     await createTodo(data);
     displayTodos();
     newTodoInput.value = "";
+}
+async function editTask() {
+    const data = { title: newTodoInput.value, completed: false };
+    if (isEditingTask)
+        await updateTodo(editButtonTodoID, data);
+    displayTodos();
+    newTodoInput.value == "";
+    isEditingTask = false;
+    submitButton.innerHTML = "Add";
 }
 async function displayTodos() {
     const todoList = await getTodos();
@@ -90,6 +117,7 @@ async function displayTodos() {
         });
     }
     deleteTaskButton();
+    editTaskTitleButton();
 }
 displayTodos();
 function deleteTaskButton() {
@@ -102,5 +130,19 @@ function deleteTaskButton() {
         };
     }
 }
-submitButton.addEventListener("click", () => addTask());
+function editTaskTitleButton() {
+    var _a, _b;
+    const editTodoTitleButtons = Array.from(document.querySelectorAll(".edit"));
+    for (const editButton of editTodoTitleButtons) {
+        const todoName = (_b = (_a = editButton.parentNode) === null || _a === void 0 ? void 0 : _a.parentNode) === null || _b === void 0 ? void 0 : _b.children[0];
+        editButton.onclick = async function () {
+            var _a;
+            newTodoInput.value = todoName.innerText;
+            submitButton.innerHTML = "Edit";
+            isEditingTask = true;
+            editButtonTodoID = (_a = editButton.getAttribute("data-id")) !== null && _a !== void 0 ? _a : '';
+        };
+    }
+}
+submitButton.addEventListener('click', () => isEditingTask ? editTask() : addTask());
 //# sourceMappingURL=script.js.map
