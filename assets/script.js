@@ -4,6 +4,7 @@ const newTodoInput = document.querySelector("#new-todo input");
 const submitButton = document.querySelector("#submit");
 let isEditingTask = false;
 let editButtonTodoID = "";
+let isComplete = false;
 async function getTodos() {
     try {
         const response = await fetch(localHostAddress);
@@ -67,7 +68,7 @@ async function addTask() {
     newTodoInput.value = "";
 }
 async function editTask() {
-    const data = { title: newTodoInput.value, completed: false };
+    const data = { title: newTodoInput.value, completed: isComplete };
     if (isEditingTask)
         await updateTodo(editButtonTodoID, data);
     displayTodos();
@@ -118,6 +119,7 @@ async function displayTodos() {
     }
     deleteTaskButton();
     editTaskTitleButton();
+    toggleTaskCompletion();
 }
 displayTodos();
 function deleteTaskButton() {
@@ -141,6 +143,21 @@ function editTaskTitleButton() {
             submitButton.innerHTML = "Edit";
             isEditingTask = true;
             editButtonTodoID = (_a = editButton.getAttribute("data-id")) !== null && _a !== void 0 ? _a : '';
+        };
+        isComplete = JSON.parse(todoName.getAttribute("data-iscomplete"));
+    }
+    ;
+}
+function toggleTaskCompletion() {
+    const editTaskCompleted = Array.from(document.querySelectorAll("#todoname"));
+    for (const task of editTaskCompleted) {
+        task.onclick = async function () {
+            var _a;
+            const isTaskDone = JSON.parse(task.getAttribute("data-iscomplete"));
+            const todoID = (_a = task.getAttribute("data-id")) !== null && _a !== void 0 ? _a : '';
+            const data = { title: task.innerText, completed: !isTaskDone };
+            await updateTodo(todoID, data);
+            displayTodos();
         };
     }
 }
